@@ -1,12 +1,13 @@
-import os
-import sys
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from kaggle_dataset import DatasetDownloader
-from utils import draw_distribution_chart, plot_correlation, plot_line_chart, plot_histogram
 import numpy as np
+
+from kaggle_dataset import DatasetDownloader
+from sklearn.preprocessing import MinMaxScaler
+from utils import draw_distribution_chart, plot_correlation, plot_line_chart, plot_histogram, plot_boxplot, constant_features, perform_action
+
 
 st.title("NASA Jet Engine Data Dashboard")
 st.sidebar.title('Options')
@@ -67,7 +68,43 @@ if uploaded_file:
 
     with tab2:
         st.header("Preprocessing")
+        df = train_data.copy()
 
+        subtab2_1, subtab2_2, subtab2_3 = st.tabs(["Handle Missing Values", "Feature Selection", "Feature Normalization"])
+
+        with subtab2_1:
+            total_missing_values = df.isnull().sum()
+            if total_missing_values.sum() == 0:
+                st.write("**NO Missing value found.**")
+
+        with subtab2_2:
+            st.write("**Select the columns that need to be droped.**")
+            constant_feuture_list = constant_features(df)
+
+            selected_features = st.multiselect("Select the column",
+                            options=[col for col in df.columns if col not in ["RUL"]],
+                              default=constant_feuture_list, key="featurelistoptions")
+            
+            if st.button("Drop"):
+                result_data = perform_action(df, selected_features)
+
+                st.write("DataFrame after Removing")
+                st.dataframe(result_data)
+                df = result_data.copy()
+
+        with subtab2_3:
+            st.write("**Chose normalization technique**")
+
+            min_max = st.checkbox("Min-Max Normalization", value=False)
+
+            if min_max:
+                scaler = MinMaxScaler()
+                scaled_data = scaler.fit_transform(df)
+                scaled_data = pd.DataFrame(scaled_data, columns=df.columns)
+
+                st.write("Scaled Data")
+                st.dataframe(scaled_data)
+        
     with tab3:
         subtab1_3, subtab2_3, subtab3_3 = st.tabs(["Correlation Matrix", "Line Chart", "Data Distribution" ])
         with subtab1_3:
@@ -104,9 +141,8 @@ if uploaded_file:
                 default=engine_options[:3],
                 key="plotdistribution"
             )
+            if plot_name == "Histogram":
+                plot_histogram(train_data, plot_name, col_name, selected_engines)
+            elif plot_name == "Boxplot":
+                plot_boxplot(train_data, col_name, selected_engines)
 
-            plot_histogram(train_data, plot_name, col_name, selected_engines)
-
-
-
-#st.line_chart(train_data[['RUL', 'sm_3']].set_index('RUL'))
