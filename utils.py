@@ -70,3 +70,7 @@ def constant_features(df):
 
 def perform_action(df, to_remove_columns):
     return df.drop(columns=to_remove_columns)
+
+def max_cycle(train_data):
+    max = train_data[['unit_number', 'time']].groupby('unit_number').count().reset_index().rename(columns={'time': 'max cycle time'})
+    return max
