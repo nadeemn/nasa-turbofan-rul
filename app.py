@@ -26,6 +26,43 @@ column_names.extend(sensor_measurements)
 if "training_ready" not in st.session_state:
     st.session_state.training_ready = False
 
+
+if not uploaded_file:
+ 
+    st.header("Prediction Goal")
+    st.write("""
+    In this dataset, the goal is to predict the Remaining Useful Life (RUL) of each engine in the test dataset. 
+    RUL is equivalent to the number of flights remaining for the engine after the last data point in the test dataset.
+    """)
+
+    st.header("Experimental Scenario")
+    st.write("""
+    The data set consists of multiple multivariate time series. Each data set is further divided into training and test subsets. 
+    Each time series is from a different engine, i.e., the data can be considered to be from a fleet of engines of the same type. 
+    Each engine starts with different degrees of initial wear and manufacturing variation, which is unknown to the user. 
+    This wear and variation is considered normal and not a fault condition.
+
+    There are three operational settings that have a substantial effect on engine performance. These settings are also included in the data. 
+    The data is contaminated with sensor noise.
+
+    The engine is operating normally at the start of each time series and develops a fault at some point during the series. 
+    In the training set, the fault grows in magnitude until system failure. In the test set, the time series ends sometime prior to system failure. 
+    The objective is to predict the number of remaining operational cycles before failure in the test set, i.e., the number of operational cycles 
+    after the last cycle that the engine will continue to operate. A vector of true Remaining Useful Life (RUL) values for the test data is also provided.
+    """)
+
+    st.header("Data Details")
+    st.write("""
+    The data are provided as a zip-compressed text file with 26 columns of numbers, separated by spaces. 
+    Each row is a snapshot of data taken during a single operational cycle, and each column is a different variable.
+    """)
+
+    st.header("Dataset Link")
+    st.markdown(
+        "You can [download the dataset here](https://www.kaggle.com/datasets/behrad3d/nasa-cmaps/data)."
+    )
+
+
 if uploaded_file:
     train_data = pd.read_csv(uploaded_file, sep=' ', header=None, names= column_names, index_col=False)
 
