@@ -96,7 +96,7 @@ if uploaded_file:
 
                 selected_features = st.multiselect("Select the column",
                                 options= df.columns,
-                                default=constant_feuture_list,
+                                default=(constant_feuture_list + ["RUL"]),
                                 key="featurelistoptions")
                 
                 if st.button("Drop Features"):
