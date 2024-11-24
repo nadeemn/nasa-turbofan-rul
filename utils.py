@@ -63,7 +63,7 @@ def plot_boxplot(data, column, engines):
 def constant_features(df):
     constant_feature = []
     for col in df.columns:
-        if abs(df[col].std() < 0.02):
+        if abs(df[col].std() <= 0.03):
             constant_feature.append(col)
 
     return constant_feature
