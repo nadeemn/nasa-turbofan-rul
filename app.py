@@ -29,34 +29,34 @@ if "training_ready" not in st.session_state:
 if uploaded_file:
     train_data = pd.read_csv(uploaded_file, sep=' ', header=None, names= column_names, index_col=False)
 
-    maintab1, maintab2 = st.tabs(["Dashboard", "Model Training and Evaluation"])
+    dashboard_tab, model_tab = st.tabs(["Dashboard", "Model Training and Evaluation"])
 
-    with maintab1:
+    with dashboard_tab:
 
         st.write("**Uploaded data**")
         st.dataframe(train_data)
 
-        tab1, tab3, tab2 = st.tabs(["Exploratory Data Analysis", "Visualization", "Pre-Processing"])
+        eda_tab, visual_tab, preprocess_tab = st.tabs(["Exploratory Data Analysis", "Visualization", "Pre-Processing"])
 
-        with tab1:
-            subtab1, subtab2, subtab3, subtab4, subtab5, subtab6 = st.tabs(['Data Shape', "Data Types",
+        with eda_tab:
+            datashape_tab, datatype_tab, missingValue_tab, statistics_tab, uniqueValue_tab, rul_tab = st.tabs(['Data Shape', "Data Types",
                                                     "Missing Values", "Statistical Summary",
                                                       "Number of Unique Values", "Compute the RUL"])
-            with subtab1:
+            with datashape_tab:
                 st.write("**Shape of the dataset**", train_data.shape)
-            with subtab2:
+            with datatype_tab:
                 st.write("**Data Types:**")
                 st.write(train_data.dtypes)
-            with subtab3:
+            with missingValue_tab:
                 st.write("**Missing Values:**")
                 st.write(train_data.isnull().sum())
-            with subtab4:
+            with statistics_tab:
                 st.write("**Statistical Summary:**")
                 st.write(train_data.describe().transpose())
-            with subtab5:
+            with uniqueValue_tab:
                 st.write("**Number of Unique values**")
                 st.write(train_data.nunique())
-            with subtab6:
+            with rul_tab:
                 st.write("### Compute Remaining Useful Life (RUL)")
                 time_column = st.selectbox("Select the time/cycle column", train_data.columns)
 
@@ -75,7 +75,7 @@ if uploaded_file:
 
                     draw_distribution_chart(max_engine_cycle['max cycle time'])
 
-        with tab2:
+        with preprocess_tab:
             st.header("Preprocessing")
 
             if "processed_data" not in st.session_state:
@@ -83,14 +83,14 @@ if uploaded_file:
 
             df = st.session_state.processed_data
 
-            subtab2_1, subtab2_2, subtab2_3 = st.tabs(["Handle Missing Values", "Feature Selection", "Feature Normalization"])
+            handleMissingValues_tab, featureSelection_tab, featureNormalizationTab = st.tabs(["Handle Missing Values", "Feature Selection", "Feature Normalization"])
 
-            with subtab2_1:
+            with handleMissingValues_tab:
                 total_missing_values = df.isnull().sum()
                 if total_missing_values.sum() == 0:
                     st.write("**No Missing value found.**")
 
-            with subtab2_2:
+            with featureSelection_tab:
                 st.write("**Select the columns that need to be droped.**")
                 constant_feuture_list = constant_features(df)
 
@@ -110,7 +110,7 @@ if uploaded_file:
                     st.success("Selected features have been dropped")
                     st.dataframe(st.session_state.processed_data)
 
-            with subtab2_3:
+            with featureNormalizationTab:
                 st.write("**Chose normalization technique**")
 
                 normalization_method = st.radio(
@@ -142,16 +142,16 @@ if uploaded_file:
                         st.session_state.training_ready = True
                         st.success("Training dataset Prepared! Navigate to the Model Training tab.")
         
-        with tab3:
-            subtab1_3, subtab2_3, subtab3_3 = st.tabs(["Correlation Matrix", "Line Chart", "Data Distribution" ])
-            with subtab1_3:
+        with visual_tab:
+            correlation_tab, lineChart_tab, data_tab = st.tabs(["Correlation Matrix", "Line Chart", "Data Distribution" ])
+            with correlation_tab:
                 df_corr = train_data.corr()
                 mask = np.tril(np.ones(df_corr.shape), k=-1).astype(bool)
                 df_corr = df_corr.where(mask)
 
                 plot_correlation(df_corr)
 
-            with subtab2_3:
+            with lineChart_tab:
                 x_col = st.selectbox("Select the x-axis column", [col for col in train_data.columns if (col == "RUL" or col =="time")])
                 y_col = st.selectbox("Select the y-axis column", [col for col in train_data.columns if col!=x_col and col!="unit_number" and col!="time"])
                 engine_options = train_data['unit_number'].unique()
@@ -165,7 +165,7 @@ if uploaded_file:
                 else:
                     st.warning("Please select at least one engine to generate the plot.")
 
-            with subtab3_3:
+            with data_tab:
                 col1, col2 = st.columns(2)
                 with col1:
                     plot_name = st.selectbox("Select Plot", ["Histogram", "Boxplot"])
@@ -183,7 +183,7 @@ if uploaded_file:
                 elif plot_name == "Boxplot":
                     plot_boxplot(train_data, col_name, selected_engines)
     
-    with maintab2:
+    with model_tab:
         if st.session_state.training_ready:
 
             traintab, valtab, testtab = st.tabs(["Train", "Validate", "Test"])
@@ -268,12 +268,13 @@ if uploaded_file:
                         grouped_data = test_data.groupby("unit_number").last().reset_index()
 
                         if st.button("Preprocess the test data and predict"):
-                            grouped_Data = grouped_data.drop(columns=selected_features, inplace=True)
+                            grouped_Data = grouped_data.drop(columns=selected_features)
 
                             if hasattr(st.session_state, "scaler"):
                                 scaler = st.session_state.scaler
 
-                                scaled_test_data = scaler.transform(grouped_data)
+                                scaled_test_data = scaler.transform(grouped_Data)
+                                st.dataframe(scaled_test_data)
 
                                 y_pred_test = st.session_state.model_trained.predict(scaled_test_data)
 
