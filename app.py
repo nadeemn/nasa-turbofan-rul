@@ -130,10 +130,10 @@ if uploaded_file:
             with featureSelection_tab:
                 st.write("**Select the columns that need to be droped.**")
                 constant_feuture_list = constant_features(df)
-
+                
                 selected_features = st.multiselect("Select the column",
                                 options= df.columns,
-                                default=(constant_feuture_list + ["RUL"]),
+                                default=constant_feuture_list,
                                 key="featurelistoptions")
                 
                 if st.button("Drop Features"):
